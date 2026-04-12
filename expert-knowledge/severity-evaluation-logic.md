@@ -81,7 +81,7 @@ Finální zdraví domény není prostým průměrem, ale odvíjí se od **nejzá
 
 ---
 
-## 4. Pokyny pro AI agenta (Instrukce pro LLM)
+## 4. Pokyny vyhodnocování
 
 Při generování reportu se drž těchto pravidel, aby nedocházelo k nadhodnocování/podhodnocování:
 
@@ -89,3 +89,6 @@ Při generování reportu se drž těchto pravidel, aby nedocházelo k nadhodnoc
 2.  **Agregace:** Pokud Shodan najde 10 otevřených portů s podobnou zranitelností na jedné IP, nepočítej to jako 10 kritických chyb, ale jako jeden **High/Critical incident** s deseti vektory.
 3.  **Falešná pozitiva (VirusTotal):** Pokud doménu označuje pouze jeden neznámý antivirus (např. "Zillya" nebo "CMC"), ignoruj to nebo sniž severitu na **LOW**. Důvěřuj velkým hráčům (Kaspersky, Microsoft, CrowdStrike).
 4.  **Priorita DNS:** Chybějící DNSSEC je **LOW**, ale chybějící SPF u domény, která posílá maily, je **MEDIUM/HIGH**.
+
+## 5. Pokyny pro plán na odstranění nedostatků
+- Pokud chybí DMARC, je lepší začít s P=none a monitorovat. Bez tohoto reportingu nebudeme moci vědět, jestli bude přechod na P=quarantine nezpůsobí problémy s doručováním emailů.
