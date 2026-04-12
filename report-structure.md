@@ -11,6 +11,7 @@ Tento dokument definuje strukturu, obsah a vizuální formátování závěrečn
 * **Barvy a Branding:** * Musí vycházet z vizuální identity poskytovatele reportu. Žádné jiné visuální styly nejsou povoleny, pouze ty definované v pravidlech pro vizuální identitu poskytovatele reportu.
 * **Overflow (Přetečení):** Pokud seznam subdomén nebo nálezů přesáhne kapacitu jednoho snímku, AI zobrazí pouze 5 nejdůležitějších položek a vytvoří na konci dokumentu sekci **Příloha (Appendix)**, kde budou vypsána všechna zbývající data.
 * **Znaková sada reportu** musí být UTF-8: <meta charset="UTF-8">.
+* **Podpora pro mobilní zařízení**: Přestože primání platformou je velká obrazovka, report musí být kvalitně zobrazován i na mobilním zařízení a zároveň zachovat definovaný moderní design. CSS tak musí obsahovat responzivní stylování.
 
 ---
 
