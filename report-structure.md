@@ -6,7 +6,7 @@ Tento dokument definuje strukturu, obsah a vizuální formátování závěrečn
 * Celý report musí být vypracován výhradně v **českém jazyce**.
 
 ## 2. Technické požadavky na formát (HTML/CSS)
-* **Layout:** Horizontální prezentace (slide-deck). Každá sekce reportu bude vizuálně oddělena jako samostatný "snímek".
+* **Layout:** Vertikální slide-deck. Report je koncipován jako série na sebe navazujících snímků řazených pod sebou. Každý <section> musí mít nastaveno min-height: 100vh; a width: 100%;, aby vizuálně vyplnil celou plochu obrazovky.
 * **Styling:** Moderní, responzivní design. Veškeré CSS musí být vloženo v tagu `<style>` uvnitř HTML hlavičky. **Nepoužívejte žádné externí knihovny** (jako Bootstrap nebo Tailwind), aby report fungoval offline.
 * **Barvy a Branding:** * Musí vycházet z vizuální identity poskytovatele reportu. Žádné jiné visuální styly nejsou povoleny, pouze ty definované v pravidlech pro vizuální identitu poskytovatele reportu.
 * **Overflow (Přetečení):** Pokud seznam subdomén nebo nálezů přesáhne kapacitu jednoho snímku, AI zobrazí pouze 5 nejdůležitějších položek a vytvoří na konci dokumentu sekci **Příloha (Appendix)**, kde budou vypsána všechna zbývající data.
