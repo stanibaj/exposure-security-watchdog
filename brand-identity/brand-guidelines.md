@@ -676,7 +676,12 @@ Použijte:
 - kódové bloky, pokud pomáhají vysvětlit princip
 - závěr s jasnými takeaways
 
-## 17. Do / Don't
+## 17. Kontaktní informace o DeepDual.ai
+- Kontaktní osoba: Ing. Stanislav Bajer
+- Email: stanislav@deepdual.ai
+- Webové stránky: deepdual.ai
+
+## 18. Do / Don't
 
 ### Do
 
