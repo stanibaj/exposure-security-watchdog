@@ -1,94 +1,104 @@
-# Znalostní báze pro hodnocení kybernetického perimetru (v1.0)
+# Znalostní báze pro hodnocení kybernetického perimetru (v1.1)
 
-Tato znalostní báze definuje standardy pro vyhodnocování nálezů z DNS, Shodanu, VirusTotalu a Certificate Transparency (CT) logů.
+Tato znalostní báze definuje metodiku pro identifikaci, kategorizaci a vyhodnocování bezpečnostních rizik zjištěných z externích zdrojů: DNS, Shodan, VirusTotal a Certificate Transparency (CT) logy. Slouží jako referenční rámec pro automatizované reporty i manuální expertní posouzení.
 
-## 1. Definice úrovní závažnosti (Severity Levels)
+## 1. Definice úrovní závažnosti (Severity Levels) pro bezpečnostní nálezy
 
-| Úroveň | Barevný kód | Popis | Akce |
+Každý nález v rámci perimetru musí být klasifikován podle jedné ze čtyř úrovní závažnosti. Tato klasifikace určuje prioritu nápravy a ovlivňuje výsledné bezpečnostní skóre organizace.
+
+| Úroveň (Severity) | Barevný kód | Technický popis rizika | Požadovaná akce (SLA) |
 | :--- | :--- | :--- | :--- |
 | **CRITICAL** | Červená | Přímá cesta ke kompromitaci (RCE, nechráněná DB, aktivní malware). | Okamžitá náprava (v řádu hodin). |
 | **HIGH** | Oranžová | Vysoké riziko zneužití, chybějící kritické bezpečnostní prvky. | Prioritní řešení (v řádu dnů). |
 | **MEDIUM** | Žlutá | Konfigurační nedostatky, které vyžadují další řetězení útoků. | Standardní údržba. |
-| **LOW** | Modrá | Odchylky od "best practices", informační nálezy. | Dle uvážení / dlouhodobý plán. |
+| **LOW** | Modrá | Odchylky od "best practices", informační nálezy bez přímého průniku. | Dle uvážení / dlouhodobý plán. |
 
 ---
 
-## 2. Kategorizace nálezů dle datových zdrojů
+## 2. Kategorizace a logika hodnocení nálezů dle datových zdrojů
 
-### 2.1 DNS Záznamy (Domain Name System)
-DNS odhaluje konfigurační integritu a ochranu proti podvrhům.
+V této sekci je definována logika hodnocení pro jednotlivé typy technických dat. Každý nález je interpretován v kontextu jeho původu.
 
-| Nález | Popis | Severita | Logika hodnocení |
+### 2.1 Hodnocení rizik u DNS záznamů (Domain Name System)
+DNS konfigurace odhaluje integritu doménové struktury a úroveň ochrany proti podvrhům (spoofingu).
+
+| Nález (DNS Finding) | Popis a dopad | Severita | Logika hodnocení |
 | :--- | :--- | :--- | :--- |
-| **Zone Transfer (AXFR)** | DNS server umožňuje stažení celé zóny. | **HIGH** | Útočník získá mapu celé interní struktury. |
-| **Chybějící SPF/DMARC** | Doména nemá nastavenou ochranu proti spoofingu. | **MEDIUM** | Vysoké riziko zneužití pro phishing jménem firmy. |
-| **Subdomain Hijacking** | CNAME záznam míří na neexistující službu (např. Azure, GitHub). | **HIGH** | Útočník může převzít kontrolu nad subdoménou. |
-| **Open Resolver** | DNS server odpovídá na rekurzivní dotazy komukoliv. | **MEDIUM** | Riziko zneužití pro DNS Amplification DDoS útoky. |
+| **Zone Transfer (AXFR)** | DNS server umožňuje stažení celé zóny. | **HIGH** | Útočník získá kompletní mapu interní a externí struktury. |
+| **Chybějící SPF/DMARC** | Absence ochrany proti e-mailovému spoofingu. | **MEDIUM** | Vysoké riziko zneužití domény pro phishing jménem firmy. |
+| **Subdomain Hijacking** | CNAME míří na neexistující cloudovou službu. | **HIGH** | Útočník může převzít kontrolu nad obsahem subdomény. |
+| **Open Resolver** | Server odpovídá na rekurzivní dotazy komukoliv. | **MEDIUM** | Riziko zneužití pro DNS Amplification DDoS útoky. |
 
-### 2.2 Shodan (Služby a infrastruktura)
-Shodan identifikuje vystavené porty, zranitelnosti a verze software.
+### 2.2 Hodnocení rizik v infrastruktuře dle dat ze Shodanu
+Skenování Shodan identifikuje vystavené porty, zranitelnosti (CVE) a chyby v konfiguraci služeb běžících na IP adresách organizace.
 
-| Nález | Popis | Severita | Logika hodnocení |
+| Nález (Shodan Finding) | Popis a dopad | Severita | Logika hodnocení |
 | :--- | :--- | :--- | :--- |
-| **Exponovaný RDP/SMB** | Porty 3389 nebo 445 otevřené do internetu. | **CRITICAL** | Hlavní vstupní bod pro ransomware (Brute force/Exploit). |
-| **Nezabezpečená DB** | MongoDB, Elasticsearch, Redis bez autentizace. | **CRITICAL** | Přímý únik dat bez nutnosti hackování. |
-| **Zastaralý SW (CVE)** | Detekovaná verze s veřejným exploitem (např. starý Apache). | **HIGH** | Závisí na CVSS skóre dané zranitelnosti. |
-| **Self-signed Certifikát** | Služba používá nedůvěryhodný certifikát. | **LOW** | Riziko MITM, ale často jde o administrativní rozhraní. |
-| **Telnet / FTP** | Nešifrované protokoly pro přenos hesel. | **HIGH** | Odposlech přihlašovacích údajů v síti. |
+| **Exponovaný RDP/SMB** | Porty 3389 nebo 445 otevřené do internetu. | **CRITICAL** | Hlavní vstupní bod pro ransomware a brute-force útoky. |
+| **Nezabezpečená DB** | MongoDB, Elasticsearch, Redis bez autentizace. | **CRITICAL** | Přímý únik dat bez nutnosti aktivního hackování. |
+| **Zastaralý SW (CVE)** | Verze softwaru s veřejně dostupným exploitem. | **HIGH** | Závisí na kritičnosti CVSS skóre dané zranitelnosti. |
+| **Self-signed Certifikát** | Služba používá nedůvěryhodný TLS/SSL certifikát. | **LOW** | Riziko MITM, indikuje nedostatečnou správu certifikátů. |
+| **Telnet / FTP** | Použití nešifrovaných protokolů pro přenos dat. | **HIGH** | Možnost odposlechu přihlašovacích údajů v síti. |
 
-### 2.3 VirusTotal (Reputace a malware)
-Analýza historických dat a detekce antivirovými engine.
+### 2.3 Reputace a detekce malware v datech VirusTotal
+Analýza využívá historická data a výsledky desítek antivirových enginů k posouzení reputace aktiv organizace.
 
-| Nález | Popis | Severita | Logika hodnocení |
+| Nález (VT Finding) | Popis a dopad | Severita | Logika hodnocení |
 | :--- | :--- | :--- | :--- |
-| **Malicious URL/IP** | Více než 5 enginů označuje doménu jako škodlivou. | **CRITICAL** | Doména je aktivně využívána pro C2 server nebo phishing. |
-| **Suspicious Activity** | 1-3 detekce u historických záznamů. | **MEDIUM** | Může jít o false positive nebo starou infekci. |
-| **Asociace s malwarem** | Doména komunikuje se známými vzorky malwaru. | **HIGH** | Indikace probíhajícího útoku nebo infiltrace. |
+| **Malicious URL/IP** | Více než 5 enginů označuje asset za škodlivý. | **CRITICAL** | Doména je aktivně využívána pro C2 nebo phishing. |
+| **Suspicious Activity** | 1-3 detekce u historických záznamů. | **MEDIUM** | Potenciální false positive nebo stará, neaktivní infekce. |
+| **Asociace s malwarem** | Komunikace se známými vzorky škodlivého kódu. | **HIGH** | Indikace probíhající infiltrace nebo útoku. |
 
-### 2.4 Certificate Transparency (Asset Discovery)
-CT logy slouží k odhalení "zapomenutých" subdomén.
+### 2.4 Asset Discovery a Shadow IT pomocí Certificate Transparency (CT)
+Monitoring CT logů slouží k odhalení zapomenutých assetů a neschválených změn v certifikační autoritě.
 
-| Nález | Popis | Severita | Logika hodnocení |
+| Nález (CT Finding) | Popis a dopad | Severita | Logika hodnocení |
 | :--- | :--- | :--- | :--- |
-| **Dev/Stage subdomény** | Nalezeny domény jako `dev.firma.cz`, `test.firma.cz`. | **MEDIUM** | Tyto servery mívají slabší zabezpečení než produkce. |
-| **Expirovaný certifikát** | Certifikát nalezený v CT již není platný, ale DNS míří na IP. | **LOW** | Indikace opuštěného (zombie) assetu. |
-| **Neočekávaná CA** | Certifikát vydala jiná autorita než obvykle (např. Let's Encrypt místo Digicert). | **MEDIUM** | Může jít o Shadow IT nebo přípravu útočníka na phishing. |
+| **Dev/Stage subdomény** | Nalezeny záznamy jako `dev.*` nebo `test.*`. | **MEDIUM** | Tyto servery mívají často nižší úroveň zabezpečení. |
+| **Expirovaný certifikát** | Certifikát v CT již není platný, ale DNS stále míří na IP. | **LOW** | Indikace opuštěného (zombie) assetu, který není spravován. |
+| **Neočekávaná CA** | Certifikát vydala jiná než schválená autorita. | **MEDIUM** | Příznak Shadow IT nebo přípravy na phishingový útok. |
 
 ---
 
-## 3. Výpočet finálního Security Health Score
+## 3. Metodika výpočtu finálního Security Health Score
 
-Finální zdraví domény není prostým průměrem, ale odvíjí se od **nejzávažnějšího nálezu**.
+Výsledné hodnocení (známka) odráží celkový stav bezpečnosti perimetru. Výpočet je založen na bodové penalizaci z výchozího stavu 100 bodů.
 
-### Metodika výpočtu (Algoritmus):
-1. **Základní skóre:** 100 bodů.
-2. **Srážky za nálezy:**
-   - Každý **CRITICAL**: -50 bodů (limitováno na min. 0).
-   - Každý **HIGH**: -20 bodů.
-   - Každý **MEDIUM**: -5 bodů.
-   - Každý **LOW**: -1 bod.
-3. **Váhová korekce:** Pokud existuje alespoň jeden CRITICAL nález, výsledná známka nemůže být lepší než **D (Nedostatečná)**, bez ohledu na počet bodů.
+### Algoritmus výpočtu skóre
+Finální skóre se vypočítá podle následujícího vzorce:
 
-### Klasifikace zdraví:
+$$Score_{final} = \max(0, 100 - \sum (P_{crit}) - \sum (P_{high}) - \sum (P_{med}) - \sum (P_{low}))$$
 
-| Body | Známka | Status | Interpretace |
+**Váhy penalizací (P):**
+- **CRITICAL**: -50 bodů
+- **HIGH**: -20 bodů
+- **MEDIUM**: -5 bodů
+- **LOW**: -1 bod
+
+*Kritická podmínka: Pokud existuje alespoň jeden nález úrovně **CRITICAL**, výsledná známka nesmí být lepší než **D**, bez ohledu na celkový počet bodů.*
+
+### Klasifikace zdraví perimetru
+
+| Body (Score) | Známka | Status | Interpretace pro management |
 | :--- | :--- | :--- | :--- |
-| **90 - 100** | **A** | Excelentní | Minimum nálezů, pouze informativní low priority věci. |
+| **90 - 100** | **A** | Excelentní | Minimální nálezy, pouze informativní charakter. |
 | **75 - 89** | **B** | Dobrý | Drobné konfigurační chyby (např. chybějící DMARC). |
 | **50 - 74** | **C** | Varovný | Existují High nálezy, perimetr vyžaduje pozornost. |
 | **25 - 49** | **D** | Špatný | Jeden nebo více Critical nálezů. Vysoké riziko průniku. |
-| **0 - 24** | **F** | Kritický | Perimetr je pravděpodobně již kompromitován nebo zcela otevřen. |
+| **0 - 24** | **F** | Kritický | Perimetr je pravděpodobně kompromitován. |
 
 ---
 
-## 4. Pokyny vyhodnocování
+## 4. Pokyny pro expertní vyhodnocování a kontextualizaci
 
-Při generování reportu se drž těchto pravidel, aby nedocházelo k nadhodnocování/podhodnocování:
+Při automatizovaném zpracování nebo manuálním review se držte těchto pravidel pro eliminaci šumu:
 
-1.  **Kontextualizace:** Ne každý otevřený port je chyba. Port 80/443 u webového serveru je **LOW** (informační), port 443 u tiskárny je **HIGH**.
-2.  **Agregace:** Pokud Shodan najde 10 otevřených portů s podobnou zranitelností na jedné IP, nepočítej to jako 10 kritických chyb, ale jako jeden **High/Critical incident** s deseti vektory.
-3.  **Falešná pozitiva (VirusTotal):** Pokud doménu označuje pouze jeden neznámý antivirus (např. "Zillya" nebo "CMC"), ignoruj to nebo sniž severitu na **LOW**. Důvěřuj velkým hráčům (Kaspersky, Microsoft, CrowdStrike).
-4.  **Priorita DNS:** Chybějící DNSSEC je **LOW**, ale chybějící SPF u domény, která posílá maily, je **MEDIUM/HIGH**.
+1. **Sémantická kontextualizace:** Port 443 (HTTPS) u webového serveru je **LOW** (info), ale u tiskárny nebo průmyslového kontroléru (PLC) je to **HIGH**.
+2. **Agregace duplicit:** Více zranitelností na jedné IP adrese/službě se počítá jako **jeden incident** s nejvyšší zjištěnou prioritou, aby nedocházelo k umělé devalvaci skóre.
+3. **Validace VirusTotal:** Důvěřujte primárně velkým vendorům (Microsoft, CrowdStrike, Kaspersky). Detekce od jediného, neznámého engine (např. Zillya) by měla být snížena na **LOW** nebo ignorována.
+4. **Priorita DNS záznamů:** Chybějící DNSSEC je hodnoceno jako **LOW**, ale chybějící SPF u domény s aktivním MX záznamem je minimálně **MEDIUM/HIGH**.
 
-## 5. Pokyny pro plán na odstranění nedostatků
-- Pokud chybí DMARC, je lepší začít s P=none a monitorovat. Bez tohoto reportingu nebudeme moci vědět, jestli bude přechod na P=quarantine nezpůsobí problémy s doručováním emailů.
+## 5. Pokyny pro nápravu a dlouhodobý plán (Remediation Plan)
+
+- **Implementace DMARC:** Vždy začínat s politikou `p=none`. Přechod na `p=quarantine` nebo `p=reject` je možný až po analýze reportů, aby nedošlo k zablokování legitimní komunikace.
+- **Sanace Shadow IT:** Assety identifikované v CT logách nebo Shodanu, které nejsou v asset inventory, musí být buď zabezpečeny podle standardu, nebo vyřazeny z provozu (včetně smazání DNS záznamů).
