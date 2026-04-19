@@ -28,6 +28,7 @@ DNS konfigurace odhaluje integritu doménové struktury a úroveň ochrany proti
 | **Chybějící SPF/DMARC** | Absence ochrany proti e-mailovému spoofingu. | **MEDIUM** | Vysoké riziko zneužití domény pro phishing jménem firmy. |
 | **Subdomain Hijacking** | CNAME míří na neexistující cloudovou službu. | **HIGH** | Útočník může převzít kontrolu nad obsahem subdomény. |
 | **Open Resolver** | Server odpovídá na rekurzivní dotazy komukoliv. | **MEDIUM** | Riziko zneužití pro DNS Amplification DDoS útoky. |
+| **Slabá SPF politika** | SPF obsahuje ~all místo hard fail -all | **INFO** | Spam je přes chybu v autentizaci přesto doručen do mailové schránky. Tohle by mělo být pouze přechodné řešení. |
 
 ### 2.2 Hodnocení rizik v infrastruktuře dle dat ze Shodanu
 Skenování Shodan identifikuje vystavené porty, zranitelnosti (CVE) a chyby v konfiguraci služeb běžících na IP adresách organizace.
